@@ -6,19 +6,31 @@ from presentation.main import app
 
 client = TestClient(app)
 
-API_COUNTRY_TEST_DATA = [("HR", "10000", 200, "Croatia")]
+
+class MockResponse:
+    def __init__(self, url):
+        self.url = url
+
+
+API_COUNTRY_TEST_DATA = [
+    ("HR", "10000", 200, "Croatia", "http://bla"),
+    # ("HR", "50000", 404, None, "http://bla"),
+]
 
 
 @pytest.mark.parametrize(
-    "country_code, postal_code, expected_status, expected_country",
+    "country_code, postal_code, expected_status, expected_country, url",
     API_COUNTRY_TEST_DATA,
 )
-def test_api_country_code(country_code, postal_code, expected_status, expected_country):
+def test_api_country_code(
+    country_code, postal_code, expected_status, expected_country, url
+):
+    mock = MockResponse(url=url)
     url = f"{API_PREFIX}/{country_code}/{postal_code}"
     response = client.get(url=url)
     assert response.status_code == expected_status
     response_body = response.json()
-    assert response_body["country"] == expected_country
+    assert response_body.get("country") == expected_country
 
 
 def test_api_country_code_mocked(mocker):
